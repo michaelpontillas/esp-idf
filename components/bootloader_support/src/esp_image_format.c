@@ -209,11 +209,14 @@ static esp_err_t image_load(esp_image_load_mode_t mode, const esp_partition_pos_
        Note: the conditions for making this check are the same as for setting verify_sha above, but on ESP32 SB V1 we move the test for
        "only verify signature in bootloader" into the macro so it's tested multiple times.
      */
-#if CONFIG_SECURE_BOOT_V2_ENABLED
-    ESP_FAULT_ASSERT(!esp_secure_boot_enabled() || memcmp(image_digest, verified_digest, HASH_LEN) == 0);
-#else // Secure Boot V1 on ESP32, only verify signatures for apps not bootloaders
-    ESP_FAULT_ASSERT(data->start_addr == ESP_BOOTLOADER_OFFSET || memcmp(image_digest, verified_digest, HASH_LEN) == 0);
-#endif
+    if(do_verify)
+    {
+    #if CONFIG_SECURE_BOOT_V2_ENABLED
+        ESP_FAULT_ASSERT(!esp_secure_boot_enabled() || memcmp(image_digest, verified_digest, HASH_LEN) == 0);
+    #else // Secure Boot V1 on ESP32, only verify signatures for apps not bootloaders
+        ESP_FAULT_ASSERT(data->start_addr == ESP_BOOTLOADER_OFFSET || memcmp(image_digest, verified_digest, HASH_LEN) == 0);
+    #endif
+    }
 
 #endif // SECURE_BOOT_CHECK_SIGNATURE
 
